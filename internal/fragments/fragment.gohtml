@@ -1,0 +1,13 @@
+{{define "fragment.gohtml"}}
+    {{if .IsLauncherIcon}}
+        {{template "launcher_icon.gohtml" .Model}}
+    {{end}}
+
+    {{if .IsDashboardModel}}
+        {{template "dashboard.gohtml" .Model}}
+    {{end}}
+
+    {{if .IsDataTable}}
+        {{template "datatable.gohtml" .Model}}
+    {{end}}
+{{end}}
