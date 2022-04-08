@@ -1,0 +1,51 @@
+<div class="navview " data-role="navview" data-expand="xxl">
+    <div class="navview-pane">
+        <div class="navview-container">
+            <ul class="navview-menu mt-4">
+                {{range .Navigation}}
+                    {{if .Active}}
+                        <li class="active">
+                    {{else}}
+                        <li>
+                    {{end}}
+                    <a href="{{.Link}}">
+                        <span class="{{.Icon}} icon"></span>
+                        <span class="caption">{{.Caption}}</span>
+                    </a>
+                    </li>
+                {{end}}
+
+            </ul>
+        </div>
+    </div>
+
+    <div class="navview-content h-100">
+        <div class="pos-absolute app-bar" data-role="appbar">
+            <span class="text-bold ml-2">{{.AppBarTitle}}</span>
+            &nbsp;|&nbsp;<span>{{.AppBarSubTitle}}</span>
+
+
+            {{range .AppBar}}
+                <a href="{{.Link}}" class="app-bar-item">{{.Caption}}</a>
+            {{end}}
+
+            <ul class="app-bar-menu">
+                {{range .Hamburger}}
+                    <li><a href="{{.Link}}" class="app-bar-item">{{.Caption}}</a></li>
+                {{end}}
+
+            </ul>
+        </div>
+
+
+        <div class="content-inner h-100" style="overflow-y: auto">
+            <div style="min-height: 52px"></div>
+            <div class="container">
+
+                <div data-id="content"></div>
+
+            </div>
+        </div>
+
+    </div>
+</div>

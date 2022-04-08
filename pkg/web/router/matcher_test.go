@@ -1,8 +1,6 @@
 package router
 
 import (
-	"context"
-	"github.com/gotrino/fusion/spec/app"
 	"net/url"
 	"testing"
 )
@@ -14,13 +12,9 @@ type Details struct {
 	Admin bool   `query:"admin"`
 }
 
-func (d *Details) Compose(ctx context.Context) app.Activity {
-	panic("implement me")
-}
-
-func TestRouteFrom(t *testing.T) {
+func TestMatcher(t *testing.T) {
 	composer := &Details{}
-	var boxed app.ActivityComposer
+	var boxed any
 	boxed = composer
 	matcher, err := NewMatcher(boxed)
 	if err != nil {

@@ -1,0 +1,30 @@
+<div class="bg-white p-4">
+    <div class="d-flex flex-wrap flex-nowrap-lg flex-align-center flex-justify-center flex-justify-start-lg mb-2">
+        <div class="w-100 mb-2 mb-0-lg" id="t1_search"></div>
+        <div class="ml-2 mr-2" id="t1_rows"></div>
+        <div class="" id="t1_actions">
+            <button class="button square" onclick="$('#t1').data('table').toggleInspector()"><span
+                        class="mif-cog"></span></button>
+        </div>
+    </div>
+    <table id="t1" class="table table-border cell-border"
+
+           data-table-search-title="Suchen"
+           data-table-info-title="Zeige $1 bis $2 von $3 Einträgen"
+           data-pagination-prev-title="vor"
+           data-pagination-next-title="zurück"
+           data-inspector-title="Spaltenauswahl"
+           data-table-rows-count-title="Seitengröße"
+
+           data-search-wrapper="#t1_search"
+           data-rows-wrapper="#t1_rows"
+           data-info-wrapper="#t1_info"
+           data-pagination-wrapper="#t1_pagination"
+           data-check="true"
+           data-horizontal-scroll="true">
+    </table>
+    <div class="d-flex flex-column flex-justify-center">
+        <div id="t1_info"></div>
+        <div id="t1_pagination"></div>
+    </div>
+</div>

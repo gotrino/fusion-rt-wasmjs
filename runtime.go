@@ -3,9 +3,9 @@ package wasmjs
 import (
 	"context"
 	"fmt"
-	"github.com/gotrino/fusion-rt-wasmjs/internal/core"
-	"github.com/gotrino/fusion-rt-wasmjs/internal/fragments"
-	"github.com/gotrino/fusion-rt-wasmjs/internal/router"
+	"github.com/gotrino/fusion-rt-wasmjs/internal/components/page"
+	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/router"
+	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/tree"
 	"github.com/gotrino/fusion/runtime"
 	"github.com/gotrino/fusion/spec/app"
 	"honnef.co/go/js/dom/v2"
@@ -18,8 +18,9 @@ import (
 type Runtime struct {
 	ctx         context.Context
 	app         app.Application
-	matchers    []*router.Matcher
-	releasables []core.Releasable
+	matchers    []*router.Matcher[app.ActivityComposer]
+	releasables []tree.Releasable
+	component   *tree.Component
 }
 
 func NewRuntime(ctx context.Context) *Runtime {
@@ -39,8 +40,6 @@ func (r *Runtime) Start(spec app.ApplicationComposer) error {
 		log.Printf("registered %v for %v\n", reflect.TypeOf(activity), matcher.Pattern())
 	}
 
-	log.Println("hello world")
-
 	r.initRouting()
 	select {}
 }
@@ -56,33 +55,54 @@ func (r *Runtime) initRouting() {
 	r.releasables = append(r.releasables, fun)
 }
 
+func (r *Runtime) Release() {
+	for _, releasable := range r.releasables {
+		releasable.Release()
+	}
+
+	r.releasables = nil
+}
+
 func (r *Runtime) elem() dom.Element {
-	return dom.GetWindow().Document().GetElementByID("app")
+	elem := dom.GetWindow().Document().GetElementByID("app")
+	if elem == nil {
+		panic("element with id='app' not found")
+	}
+
+	return elem
 }
 
 func (r *Runtime) applyActivity(composer app.ActivityComposer) {
+	r.component.Release()
+
 	var acs []app.Activity
-	for _, cmp := range r.app.Activities {
+	idx := -1
+	for i, cmp := range r.app.Activities {
 		ac := cmp.Compose(r.ctx)
 		acs = append(acs, ac)
+		if cmp == composer { // composer must be pointer-type anyway
+			idx = i
+		}
 	}
 
-	ac := composer.Compose(r.ctx)
-	dom.GetWindow().Document().Underlying().Set("title", ac.Title)
-	r.elem().SetInnerHTML("<h1>" + ac.Title + "</h1>")
+	state := runtime.State{
+		Context:     r.ctx,
+		Application: r.app,
+		Activities:  acs,
+		Active:      idx,
+	}
 
-	r.elem().SetInnerHTML(fragments.Render(r.app, acs, ac))
+	myPage := page.NewPage(r.ctx, state)
+	r.component = myPage.Render(r.ctx)
+
+	root := r.elem()
+	root.SetTextContent("")
+	root.AppendChild(r.component.Unwrap())
+	r.component.Appended()
 }
 
 func (r *Runtime) applyHome() {
-	var acs []app.Activity
-	for _, cmp := range r.app.Activities {
-		ac := cmp.Compose(r.ctx)
-		acs = append(acs, ac)
-	}
-
-	dom.GetWindow().Document().Underlying().Set("title", r.app.Title)
-	r.elem().SetInnerHTML(fragments.Render(r.app, acs, acs))
+	r.applyActivity(nil)
 }
 
 func (r *Runtime) dispatchRoute(route string) {
@@ -97,8 +117,8 @@ func (r *Runtime) dispatchRoute(route string) {
 
 	for _, matcher := range r.matchers {
 		if matcher.Matches(u) {
-			log.Printf("route matches: %s\n", reflect.TypeOf(matcher.Composer()).String())
-			r.applyActivity(matcher.Composer())
+			log.Printf("route matches: %T\n", matcher.Unwrap())
+			r.applyActivity(matcher.Unwrap())
 			return
 		}
 	}

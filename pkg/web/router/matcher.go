@@ -2,30 +2,38 @@ package router
 
 import (
 	"fmt"
-	"github.com/gotrino/fusion-rt-wasmjs/internal/reflect"
-	"github.com/gotrino/fusion/spec/app"
 	"net/url"
-	reflect2 "reflect"
+	"reflect"
 	"strconv"
 	"strings"
 )
 
-type Matcher struct {
-	composer    app.ActivityComposer // describes a concrete activity and has parameter fields
+// Matcher reflects the given composer to extract routing information and to apply parsed information into
+// it accordingly.
+// Example:
+//   type Details struct {
+//	   Route string `route:"/devices/:id/details"`
+//	   ID    string `path:"id"`
+//	   Limit int    `query:"limit"`
+//	   Admin bool   `query:"admin"`
+//  }
+type Matcher[T any] struct {
+	composer    T // describes a concrete activity and has parameter fields
 	pattern     []string
 	paramParser map[string]func(v string) error
 	queryParams []string
 }
 
-func NewMatcher(composer app.ActivityComposer) (*Matcher, error) {
+// NewMatcher allocates a new instance. The given T must be a pointer to a value, so that its field can be updated.
+func NewMatcher[T any](composer T) (*Matcher[T], error) {
 	hasRoute := false
-	cval := reflect2.ValueOf(composer).Elem()
+	cval := reflect.ValueOf(composer).Elem()
 
-	m := Matcher{
+	m := Matcher[T]{
 		composer:    composer,
 		paramParser: map[string]func(v string) error{},
 	}
-	for k, field := range reflect.Fields(composer) {
+	for k, field := range fields(composer) {
 		idx := k
 		if !field.IsExported() {
 			continue
@@ -61,7 +69,7 @@ func NewMatcher(composer app.ActivityComposer) (*Matcher, error) {
 			case "int":
 				m.paramParser[param] = func(v string) error {
 					if v == "" {
-						cval.Field(idx).Set(reflect2.ValueOf(0))
+						cval.Field(idx).Set(reflect.ValueOf(0))
 						return nil
 					}
 
@@ -70,13 +78,13 @@ func NewMatcher(composer app.ActivityComposer) (*Matcher, error) {
 						return fmt.Errorf("cannot parse parameter: %w", err)
 					}
 
-					cval.Field(idx).Set(reflect2.ValueOf(i))
+					cval.Field(idx).Set(reflect.ValueOf(i))
 					return nil
 				}
 			case "bool":
 				m.paramParser[param] = func(v string) error {
 					if v == "" {
-						cval.Field(idx).Set(reflect2.ValueOf(false))
+						cval.Field(idx).Set(reflect.ValueOf(false))
 						return nil
 					}
 
@@ -85,12 +93,12 @@ func NewMatcher(composer app.ActivityComposer) (*Matcher, error) {
 						return fmt.Errorf("cannot parse parameter: %w", err)
 					}
 
-					cval.Field(idx).Set(reflect2.ValueOf(i))
+					cval.Field(idx).Set(reflect.ValueOf(i))
 					return nil
 				}
 			case "string":
 				m.paramParser[param] = func(v string) error {
-					cval.Field(idx).Set(reflect2.ValueOf(v))
+					cval.Field(idx).Set(reflect.ValueOf(v))
 					return nil
 				}
 			default:
@@ -106,16 +114,16 @@ func NewMatcher(composer app.ActivityComposer) (*Matcher, error) {
 	return &m, nil
 }
 
-func (r *Matcher) Pattern() string {
+func (r *Matcher[T]) Pattern() string {
 	return strings.Join(r.pattern, "/")
 }
 
-func (r *Matcher) Composer() app.ActivityComposer {
+func (r *Matcher[T]) Unwrap() T {
 	return r.composer
 }
 
 // Reset populates all registered parameter bindings with their zero values.
-func (r *Matcher) Reset() {
+func (r *Matcher[T]) Reset() {
 	for _, f := range r.paramParser {
 		if err := f(""); err != nil {
 			panic(err) // cannot happen, implementation failure
@@ -124,7 +132,7 @@ func (r *Matcher) Reset() {
 }
 
 // Matches returns true if the given url path can be matched to the composer pattern.
-func (r *Matcher) Matches(uri *url.URL) bool {
+func (r *Matcher[T]) Matches(uri *url.URL) bool {
 	pathNames := stripNames(uri.Path)
 	if len(pathNames) != len(r.pattern) {
 		return false
@@ -146,7 +154,7 @@ func (r *Matcher) Matches(uri *url.URL) bool {
 
 // Apply must only be called if the url Matches. Reset is not required, because by definition all declared
 // params are parsed anyway and if not defined the default value is set (empty string).
-func (r *Matcher) Apply(uri *url.URL) error {
+func (r *Matcher[T]) Apply(uri *url.URL) error {
 	pathNames := stripNames(uri.Path)
 	if len(pathNames) != len(r.pattern) {
 		panic("illegal state") // programming error
@@ -199,4 +207,14 @@ func stripNames(v string) []string {
 	}
 
 	return strings.Split(v, "/")
+}
+
+func fields(a any) []reflect.StructField {
+	var res []reflect.StructField
+	typ := reflect.TypeOf(a).Elem()
+	for i := 0; i < typ.NumField(); i++ {
+		res = append(res, typ.Field(i))
+	}
+
+	return res
 }
