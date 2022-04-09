@@ -20,7 +20,7 @@ func (c *Dashboard) Render(ctx context.Context) *tree.Component {
 	rowCount := 0
 	root := tree.Elem("div")
 	row := tree.Elem("div")
-	row.Unwrap().Class().Add("row")
+	row.Unwrap().Class().SetString("grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4")
 
 	for _, activity := range c.activities {
 		if activity.Launcher != nil {
@@ -30,7 +30,7 @@ func (c *Dashboard) Render(ctx context.Context) *tree.Component {
 
 			if rowCount == c.maxPerRow {
 				row = tree.Elem("div")
-				row.Unwrap().Class().Add("row")
+				row.Unwrap().Class().SetString("grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4")
 				rowCount = 0
 				root.Add(row)
 			}

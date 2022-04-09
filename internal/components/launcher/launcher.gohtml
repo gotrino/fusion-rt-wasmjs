@@ -1,12 +1,31 @@
-<div class="cell-lg-3 cell-md-6 mt-2">
-    <div class="more-info-box bg-cyan fg-white">
-        <div class="content">
-            <h2 class="text-bold mb-0">{{.Title}}</h2>
-            <div>{{.SubTitle}}</div>
+<a href="{{.Link}}">
+    <div class="flex items-center rounded-lg shadow-sm transition-shadow justify-between p-4 bg-white  dark:bg-darker hover:shadow-lg">
+        <div>
+            <h6
+                    class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase dark:text-primary-light"
+            >
+                {{.SubTitle}}
+            </h6>
+            <span class="text-xl font-semibold">{{.Title}}</span>
+
         </div>
-        <div class="icon">
-            <span class="{{.Icon}}"></span>
+        <div>
+                    <span>
+                      <svg
+                              class="w-12 h-12 text-gray-300 dark:text-primary-dark"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                      >
+                        <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                        />
+                      </svg>
+                    </span>
         </div>
-        <a href="{{.Link}}" class="more"> {{.More}} <span class="mif-arrow-right"></span></a>
     </div>
-</div>
+</a>

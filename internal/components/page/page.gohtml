@@ -1,3 +1,183 @@
+<div class="flex h-screen antialiased text-gray-900 bg-gray-100 dark:bg-dark dark:text-light">
+
+    <!-- Sidebar -->
+    <aside class="flex-shrink-0 hidden w-64 bg-white border-r dark:border-primary-darker dark:bg-darker md:block">
+        <div class="flex flex-col h-full">
+            <!-- Sidebar links -->
+            <nav aria-label="Main" class="flex-1 px-2 py-4 space-y-2 overflow-y-hidden hover:overflow-y-auto">
+                <a
+                        href="#"
+                        class="flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary"
+                        :class="{'bg-primary-100 dark:bg-primary': isActive || open}"
+                        role="button"
+                        aria-haspopup="true"
+
+                >
+                  <span aria-hidden="true">
+                    <svg
+                            class="w-5 h-5"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                    >
+                      <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                      />
+                    </svg>
+                  </span>
+                    <span class="ml-2 text-sm"> Dashboard </span>
+                    <span class="ml-auto" aria-hidden="true"></span>
+                </a>
+
+
+                <a
+                        href="#"
+                        class="flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary"
+                        :class="{'bg-primary-100 dark:bg-primary': isActive || open}"
+                        role="button"
+                        aria-haspopup="true"
+
+                >
+                  <span aria-hidden="true">
+                    <svg
+                            class="w-5 h-5"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                    >
+                      <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                      />
+                    </svg>
+                  </span>
+                    <span class="ml-2 text-sm"> Dashboard </span>
+                    <span class="ml-auto" aria-hidden="true"></span>
+                </a>
+
+            </nav>
+
+            <!-- menu footer -->
+            <div class="flex-shrink-0 px-2 py-4 space-y-2">
+                menu footer
+            </div>
+
+        </div>
+
+
+    </aside>
+
+
+    <div class="flex flex-col flex-1 min-h-screen overflow-x-hidden overflow-y-auto">
+
+
+        <!-- Navbar -->
+        <header class="relative flex-shrink-0 bg-white dark:bg-darker">
+            <div class="flex items-center justify-between p-2 border-b dark:border-primary-darker">
+                <!-- Mobile menu button -->
+                <button
+                        @click="isMobileMainMenuOpen = !isMobileMainMenuOpen"
+                        class="p-1 transition-colors duration-200 rounded-md text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark md:hidden focus:outline-none focus:ring"
+                >
+                    <span class="sr-only">Open main manu</span>
+                    <span aria-hidden="true">
+                  <svg
+                          class="w-8 h-8"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                  </svg>
+                </span>
+                </button>
+
+                <!-- Brand -->
+                <a
+                        href="#"
+                        class="inline-block text-2xl font-bold tracking-wider uppercase text-primary-dark dark:text-light"
+                >
+                    <span >{{.AppBarTitle}}</span>
+                    &nbsp;|&nbsp;<span>{{.AppBarSubTitle}}</span>
+                </a>
+
+
+                <!-- Desktop Right buttons -->
+                <nav aria-label="Secondary" class=" space-x-2 md:flex items-center">
+                    <!-- Mobile sub menu button -->
+                    <button
+                            @click="isMobileSubMenuOpen = !isMobileSubMenuOpen"
+                            class="p-1 transition-colors duration-200 rounded-md text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark  focus:outline-none focus:ring"
+                    >
+                        <span class="sr-only">Open sub manu</span>
+                        <span aria-hidden="true">
+                  <svg
+                          class="w-8 h-8"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                  >
+                    <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                    />
+                  </svg>
+                </span>
+                    </button>
+                </nav>
+            </div>
+
+
+        </header>
+
+
+        <!-- Main content -->
+        <!-- Content header -->
+        <div class="flex items-center justify-between px-4 py-4 border-b lg:py-6 dark:border-primary-darker">
+            <h1 class="text-2xl font-semibold">{{.AppBarSubTitle}}</h1>
+
+        </div>
+        <main data-id="content">
+
+
+
+            <!-- Content -->
+            <div class="mt-2">
+                <!-- State cards -->
+                <div class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4">
+
+
+
+
+                    <!-- Users card -->
+                    <div class="flex items-center rounded-lg shadow-sm transition-shadow justify-between p-4 bg-white  dark:bg-darker hover:shadow-lg">
+                        Blabla
+                    </div>
+
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+
+</div>
+
+
+<!-- Aaaaaaa -->
+
 <div class="navview " data-role="navview" data-expand="xxl">
     <div class="navview-pane">
         <div class="navview-container">
