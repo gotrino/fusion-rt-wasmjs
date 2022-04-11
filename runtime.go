@@ -27,8 +27,24 @@ func NewRuntime(ctx context.Context) *Runtime {
 	return &Runtime{ctx: ctx}
 }
 
+func (r *Runtime) Navigate(ac app.ActivityComposer) {
+	matcher, err := router.NewMatcher[app.ActivityComposer](ac)
+	if err != nil {
+		panic(fmt.Errorf("invalid matcher: %w", err))
+	}
+
+	route := matcher.Render()
+	route = router.LinkTo(r.ctx, route)
+	dom.GetWindow().Location().SetHref(route)
+}
+
 func (r *Runtime) Start(spec app.ApplicationComposer) error {
+	r.ctx = context.Background()
+	r.ctx = app.WithContext[app.Navigator](r.ctx, app.Navigator{Delegate: r})
+
 	r.app = spec.Compose(r.ctx)
+	r.ctx = app.WithContext[app.Application](r.ctx, r.app)
+
 	for _, activity := range r.app.Activities {
 		matcher, err := router.NewMatcher(activity)
 		if err != nil {

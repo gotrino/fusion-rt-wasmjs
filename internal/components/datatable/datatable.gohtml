@@ -1,425 +1,105 @@
 <div class="flex flex-col mt-6 p-4">
+    {{if ne .ErrMsg ""}}
+        <div class="bg-red-100 rounded-lg py-5 px-6 mb-4 text-base text-red-700 mb-3" role="alert">
+            {{.ErrMsg}}
+        </div>
+    {{end}}
+
     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8 ">
             <div class="overflow-hidden border-b border-gray-200 rounded-md shadow-md">
+
+
                 <table class="min-w-full overflow-x-scroll divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                            Name
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                            Title
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                            Status
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                            Role
-                        </th>
-                        <th scope="col" class="relative px-6 py-3">
-                            <span class="sr-only">Edit</span>
-                        </th>
+                        {{range .Columns}}
+                            {{if eq .Title ""}}
+                                <th scope="col" class="relative px-6 py-3">
+                                    <span class="sr-only"></span>
+                                </th>
+                            {{else}}
+                                <th scope="col"
+                                    class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                                    {{.Title}}
+                                </th>
+                            {{end}}
+
+                        {{end}}
+
                     </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                    <template x-for="i in 10" :key="i">
-                        <tr class="transition-all hover:bg-gray-100 hover:shadow-lg">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 w-10 h-10">
-                                        <img class="w-10 h-10 rounded-full" src="https://avatars0.githubusercontent.com/u/57622665?s=460&amp;u=8f581f4c4acd4c18c33a87b3e6476112325e8b38&amp;v=4" alt="">
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">Ahmed Kamel</div>
-                                        <div class="text-sm text-gray-500">ahmed.kamel@example.com</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Regional Paradigm Technician</div>
-                                <div class="text-sm text-gray-500">Optimization</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="
-                                inline-flex
-                                px-2
-                                text-xs
-                                font-semibold
-                                leading-5
-                                text-green-800
-                                bg-green-100
-                                rounded-full
-                              ">
-                              Active
-                            </span>
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">Admin</td>
-                            <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                                <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                            </td>
+
+                    {{range .Rows}}
+                        <tr id="{{- .ID -}}"
+                            class="{{- if .Hover -}}transition-all hover:bg-gray-100 hover:shadow-lg cursor-pointer{{- end -}}">
+
+
+                            {{range .Cells}}
+                                {{if eq .Type "text-1"}}
+                                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{index .Values 0}}</td>
+                                {{else if eq .Type "link"}}
+                                    <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
+                                        <a href="{{index .Values 0}}"
+                                           class="text-indigo-600 hover:text-indigo-900">{{index .Values 1}}</a>
+                                    </td>
+                                {{else if eq .Type "text-2"}}
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{index .Values 0}}</div>
+                                        <div class="text-sm text-gray-500">{{index .Values 1}}</div>
+                                    </td>
+                                {{else if eq .Type "img-text-2"}}
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 w-10 h-10">
+                                                <img alt="" class="w-10 h-10 rounded-full"
+                                                     src="{{index .Values 2}}">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">{{index .Values 0}}</div>
+                                                <div class="text-sm text-gray-500">{{index .Values 1}}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                {{else if eq .Type "svg-text-2"}}
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0">
+                                                {{.UnsafeHTML 2}}
+
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">{{index .Values 0}}</div>
+                                                <div class="text-sm text-gray-500">{{index .Values 1}}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                {{else if eq .Type "badges"}}
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {{range .Badges}}
+                                            <span class="
+                                            inline-flex
+                                            px-2
+                                            text-xs
+                                            font-semibold
+                                            leading-5
+                                            text-{{- .Color -}}-800
+                                            bg-{{- .Color -}}-100
+                                            rounded-full
+                                          ">
+                                          {{.Text}}
+                                        </span>
+                                        {{end}}
+                                    </td>
+                                {{else}}
+                                    <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{.String}}</td>
+                                {{end}}
+                            {{end}}
                         </tr>
-                    </template>
+                    {{end}}
 
-                    <tr class="transition-all hover:bg-gray-100 hover:shadow-lg">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 w-10 h-10">
-                                    <img class="w-10 h-10 rounded-full" src="https://avatars0.githubusercontent.com/u/57622665?s=460&amp;u=8f581f4c4acd4c18c33a87b3e6476112325e8b38&amp;v=4" alt="">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">Ahmed Kamel</div>
-                                    <div class="text-sm text-gray-500">ahmed.kamel@example.com</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Regional Paradigm Technician</div>
-                            <div class="text-sm text-gray-500">Optimization</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="
-                                inline-flex
-                                px-2
-                                text-xs
-                                font-semibold
-                                leading-5
-                                text-green-800
-                                bg-green-100
-                                rounded-full
-                              ">
-                              Active
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">Admin</td>
-                        <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                            <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                        </td>
-                    </tr>
 
-                    <tr class="transition-all hover:bg-gray-100 hover:shadow-lg">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 w-10 h-10">
-                                    <img class="w-10 h-10 rounded-full" src="https://avatars0.githubusercontent.com/u/57622665?s=460&amp;u=8f581f4c4acd4c18c33a87b3e6476112325e8b38&amp;v=4" alt="">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">Ahmed Kamel</div>
-                                    <div class="text-sm text-gray-500">ahmed.kamel@example.com</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Regional Paradigm Technician</div>
-                            <div class="text-sm text-gray-500">Optimization</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="
-                                inline-flex
-                                px-2
-                                text-xs
-                                font-semibold
-                                leading-5
-                                text-green-800
-                                bg-green-100
-                                rounded-full
-                              ">
-                              Active
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">Admin</td>
-                        <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                            <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                        </td>
-                    </tr>
-
-                    <tr class="transition-all hover:bg-gray-100 hover:shadow-lg">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 w-10 h-10">
-                                    <img class="w-10 h-10 rounded-full" src="https://avatars0.githubusercontent.com/u/57622665?s=460&amp;u=8f581f4c4acd4c18c33a87b3e6476112325e8b38&amp;v=4" alt="">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">Ahmed Kamel</div>
-                                    <div class="text-sm text-gray-500">ahmed.kamel@example.com</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Regional Paradigm Technician</div>
-                            <div class="text-sm text-gray-500">Optimization</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="
-                                inline-flex
-                                px-2
-                                text-xs
-                                font-semibold
-                                leading-5
-                                text-green-800
-                                bg-green-100
-                                rounded-full
-                              ">
-                              Active
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">Admin</td>
-                        <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                            <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                        </td>
-                    </tr>
-
-                    <tr class="transition-all hover:bg-gray-100 hover:shadow-lg">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 w-10 h-10">
-                                    <img class="w-10 h-10 rounded-full" src="https://avatars0.githubusercontent.com/u/57622665?s=460&amp;u=8f581f4c4acd4c18c33a87b3e6476112325e8b38&amp;v=4" alt="">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">Ahmed Kamel</div>
-                                    <div class="text-sm text-gray-500">ahmed.kamel@example.com</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Regional Paradigm Technician</div>
-                            <div class="text-sm text-gray-500">Optimization</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="
-                                inline-flex
-                                px-2
-                                text-xs
-                                font-semibold
-                                leading-5
-                                text-green-800
-                                bg-green-100
-                                rounded-full
-                              ">
-                              Active
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">Admin</td>
-                        <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                            <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                        </td>
-                    </tr>
-
-                    <tr class="transition-all hover:bg-gray-100 hover:shadow-lg">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 w-10 h-10">
-                                    <img class="w-10 h-10 rounded-full" src="https://avatars0.githubusercontent.com/u/57622665?s=460&amp;u=8f581f4c4acd4c18c33a87b3e6476112325e8b38&amp;v=4" alt="">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">Ahmed Kamel</div>
-                                    <div class="text-sm text-gray-500">ahmed.kamel@example.com</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Regional Paradigm Technician</div>
-                            <div class="text-sm text-gray-500">Optimization</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="
-                                inline-flex
-                                px-2
-                                text-xs
-                                font-semibold
-                                leading-5
-                                text-green-800
-                                bg-green-100
-                                rounded-full
-                              ">
-                              Active
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">Admin</td>
-                        <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                            <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                        </td>
-                    </tr>
-
-                    <tr class="transition-all hover:bg-gray-100 hover:shadow-lg">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 w-10 h-10">
-                                    <img class="w-10 h-10 rounded-full" src="https://avatars0.githubusercontent.com/u/57622665?s=460&amp;u=8f581f4c4acd4c18c33a87b3e6476112325e8b38&amp;v=4" alt="">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">Ahmed Kamel</div>
-                                    <div class="text-sm text-gray-500">ahmed.kamel@example.com</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Regional Paradigm Technician</div>
-                            <div class="text-sm text-gray-500">Optimization</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="
-                                inline-flex
-                                px-2
-                                text-xs
-                                font-semibold
-                                leading-5
-                                text-green-800
-                                bg-green-100
-                                rounded-full
-                              ">
-                              Active
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">Admin</td>
-                        <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                            <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                        </td>
-                    </tr>
-
-                    <tr class="transition-all hover:bg-gray-100 hover:shadow-lg">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 w-10 h-10">
-                                    <img class="w-10 h-10 rounded-full" src="https://avatars0.githubusercontent.com/u/57622665?s=460&amp;u=8f581f4c4acd4c18c33a87b3e6476112325e8b38&amp;v=4" alt="">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">Ahmed Kamel</div>
-                                    <div class="text-sm text-gray-500">ahmed.kamel@example.com</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Regional Paradigm Technician</div>
-                            <div class="text-sm text-gray-500">Optimization</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="
-                                inline-flex
-                                px-2
-                                text-xs
-                                font-semibold
-                                leading-5
-                                text-green-800
-                                bg-green-100
-                                rounded-full
-                              ">
-                              Active
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">Admin</td>
-                        <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                            <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                        </td>
-                    </tr>
-
-                    <tr class="transition-all hover:bg-gray-100 hover:shadow-lg">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 w-10 h-10">
-                                    <img class="w-10 h-10 rounded-full" src="https://avatars0.githubusercontent.com/u/57622665?s=460&amp;u=8f581f4c4acd4c18c33a87b3e6476112325e8b38&amp;v=4" alt="">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">Ahmed Kamel</div>
-                                    <div class="text-sm text-gray-500">ahmed.kamel@example.com</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Regional Paradigm Technician</div>
-                            <div class="text-sm text-gray-500">Optimization</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="
-                                inline-flex
-                                px-2
-                                text-xs
-                                font-semibold
-                                leading-5
-                                text-green-800
-                                bg-green-100
-                                rounded-full
-                              ">
-                              Active
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">Admin</td>
-                        <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                            <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                        </td>
-                    </tr>
-
-                    <tr class="transition-all hover:bg-gray-100 hover:shadow-lg">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 w-10 h-10">
-                                    <img class="w-10 h-10 rounded-full" src="https://avatars0.githubusercontent.com/u/57622665?s=460&amp;u=8f581f4c4acd4c18c33a87b3e6476112325e8b38&amp;v=4" alt="">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">Ahmed Kamel</div>
-                                    <div class="text-sm text-gray-500">ahmed.kamel@example.com</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Regional Paradigm Technician</div>
-                            <div class="text-sm text-gray-500">Optimization</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="
-                                inline-flex
-                                px-2
-                                text-xs
-                                font-semibold
-                                leading-5
-                                text-green-800
-                                bg-green-100
-                                rounded-full
-                              ">
-                              Active
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">Admin</td>
-                        <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                            <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                        </td>
-                    </tr>
-
-                    <tr class="transition-all hover:bg-gray-100 hover:shadow-lg">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 w-10 h-10">
-                                    <img class="w-10 h-10 rounded-full" src="https://avatars0.githubusercontent.com/u/57622665?s=460&amp;u=8f581f4c4acd4c18c33a87b3e6476112325e8b38&amp;v=4" alt="">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">Ahmed Kamel</div>
-                                    <div class="text-sm text-gray-500">ahmed.kamel@example.com</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Regional Paradigm Technician</div>
-                            <div class="text-sm text-gray-500">Optimization</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="
-                                inline-flex
-                                px-2
-                                text-xs
-                                font-semibold
-                                leading-5
-                                text-green-800
-                                bg-green-100
-                                rounded-full
-                              ">
-                              Active
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">Admin</td>
-                        <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
-                            <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                        </td>
-                    </tr>
                     </tbody>
                 </table>
             </div>

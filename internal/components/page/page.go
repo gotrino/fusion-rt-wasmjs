@@ -11,17 +11,24 @@ import (
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/tree"
 	"github.com/gotrino/fusion/runtime"
 	"github.com/gotrino/fusion/spec/app"
+	"github.com/gotrino/fusion/spec/svg"
 	"honnef.co/go/js/dom/v2"
+	"html/template"
+	"log"
 )
 
 //go:embed *.gohtml
 var tpl embed.FS
 
 type MenuItem struct {
-	Icon    string
+	SVG     svg.SVG
 	Link    string
 	Caption string
 	Active  bool
+}
+
+func (m MenuItem) UnsafeSVG() template.HTML {
+	return template.HTML(m.SVG)
 }
 
 type Model struct {
@@ -42,9 +49,9 @@ func NewPage(ctx context.Context, state runtime.State) *Page {
 	m.AppBarTitle = state.Application.Title
 	m.AppBarSubTitle = i18n.Text(ctx, "Dashboard")
 	m.Navigation = append(m.Navigation, MenuItem{
-		Icon:    "mif-apps",
+		SVG:     svg.OutlineHome,
 		Link:    router.LinkTo(ctx, "/"),
-		Caption: "Dashboard",
+		Caption: i18n.Text(ctx, "Dashboard"),
 		Active:  state.Active < 0,
 	})
 
@@ -57,7 +64,7 @@ func NewPage(ctx context.Context, state runtime.State) *Page {
 			switch t := activity.Launcher.(type) {
 			case app.Icon:
 				m.Navigation = append(m.Navigation, MenuItem{
-					Icon:    t.Icon,
+					SVG:     t.Icon,
 					Link:    router.LinkTo(ctx, t.Link),
 					Caption: t.Title,
 					Active:  i == state.Active,
@@ -75,19 +82,26 @@ func (c *Page) Render(ctx context.Context) *tree.Component {
 	dom.GetWindow().Document().Underlying().Set("title", c.model.AppBarTitle+" | "+c.model.AppBarSubTitle)
 	cmp := tree.Template(ctx, tpl, c.model)
 
-	if c.state.Active < 0 {
-		db := dashboard.NewDashboard(ctx, c.state.Activities).Render(ctx)
-		cmp.Replace("content", db)
-	} else {
-		activity := c.state.Activities[c.state.Active]
-		frags := tree.Elem("div")
-		for _, fragment := range activity.Fragments {
-			renderer := fragments.Resolve(ctx, fragment)
-			frags.Add(renderer.Render(ctx))
+	go func() {
+		if c.state.Active < 0 {
+			db := dashboard.NewDashboard(ctx, c.state.Activities).Render(ctx)
+			cmp.Replace("content", db)
+		} else {
+			activity := c.state.Activities[c.state.Active]
+			frags := tree.Elem("div")
+			for _, fragment := range activity.Fragments {
+				renderer := fragments.Resolve(ctx, fragment)
+				frags.Add(renderer.Render(ctx))
+			}
+
+			if ctx.Err() == nil {
+				cmp.Replace("content", frags)
+			} else {
+				log.Printf("context errored out: %v\n", ctx.Err())
+			}
 		}
 
-		cmp.Replace("content", frags)
-	}
+	}()
 
 	return cmp
 }

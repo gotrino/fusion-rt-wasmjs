@@ -97,6 +97,19 @@ func (c *Component) Replace(dataId string, other *Component) *Component {
 	return c
 }
 
+func (c *Component) AppendChild(dataId string, other *Component) *Component {
+	elem := c.wrapped.QuerySelector(`[data-id="` + dataId + `"]`)
+	if elem == nil {
+		panic("there is no such element '" + dataId + "'")
+	}
+
+	elem.AppendChild(other.wrapped)
+
+	c.Attach(other)
+
+	return c
+}
+
 func (c *Component) Add(other *Component) *Component {
 	c.wrapped.AppendChild(other.wrapped)
 	c.Attach(other)

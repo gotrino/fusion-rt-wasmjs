@@ -21,6 +21,7 @@ type Matcher[T any] struct {
 	composer    T // describes a concrete activity and has parameter fields
 	pattern     []string
 	paramParser map[string]func(v string) error
+	paramGetter map[string]func() any
 	queryParams []string
 }
 
@@ -32,6 +33,7 @@ func NewMatcher[T any](composer T) (*Matcher[T], error) {
 	m := Matcher[T]{
 		composer:    composer,
 		paramParser: map[string]func(v string) error{},
+		paramGetter: map[string]func() any{},
 	}
 	for k, field := range fields(composer) {
 		idx := k
@@ -81,6 +83,10 @@ func NewMatcher[T any](composer T) (*Matcher[T], error) {
 					cval.Field(idx).Set(reflect.ValueOf(i))
 					return nil
 				}
+
+				m.paramGetter[param] = func() any {
+					return cval.Field(idx).Int()
+				}
 			case "bool":
 				m.paramParser[param] = func(v string) error {
 					if v == "" {
@@ -96,10 +102,18 @@ func NewMatcher[T any](composer T) (*Matcher[T], error) {
 					cval.Field(idx).Set(reflect.ValueOf(i))
 					return nil
 				}
+
+				m.paramGetter[param] = func() any {
+					return cval.Field(idx).Bool()
+				}
 			case "string":
 				m.paramParser[param] = func(v string) error {
 					cval.Field(idx).Set(reflect.ValueOf(v))
 					return nil
+				}
+
+				m.paramGetter[param] = func() any {
+					return cval.Field(idx).String()
 				}
 			default:
 				return nil, fmt.Errorf("unsupported parameter type: %s", field.Type.Name())
@@ -112,6 +126,30 @@ func NewMatcher[T any](composer T) (*Matcher[T], error) {
 	}
 
 	return &m, nil
+}
+
+// Render takes the current state of the all path and query params to assemble a concrete route.
+func (r *Matcher[T]) Render() string {
+	var segments []string
+	for _, s := range r.pattern {
+		isPathVar := strings.HasPrefix(s, ":")
+		if isPathVar {
+			segments = append(segments, fmt.Sprintf("%v", r.paramGetter[s[1:]]()))
+		} else {
+			segments = append(segments, s)
+		}
+	}
+
+	path := strings.Join(segments, "/")
+	if len(r.queryParams) > 0 {
+		path += "?"
+	}
+
+	for _, param := range r.queryParams {
+		path += fmt.Sprintf("%s=%v&", param, r.paramGetter[param]())
+	}
+
+	return path
 }
 
 func (r *Matcher[T]) Pattern() string {

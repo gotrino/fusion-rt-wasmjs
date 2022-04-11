@@ -8,6 +8,7 @@ import (
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/router"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/tree"
 	"github.com/gotrino/fusion/spec/app"
+	"github.com/gotrino/fusion/spec/svg"
 )
 
 //go:embed *.gohtml
@@ -16,7 +17,7 @@ var tpl embed.FS
 type Model struct {
 	Title    string
 	SubTitle string
-	Icon     string
+	Icon     svg.SVG
 	Link     string
 	More     string
 }
