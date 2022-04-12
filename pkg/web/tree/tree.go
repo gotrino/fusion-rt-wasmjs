@@ -97,6 +97,24 @@ func (c *Component) Replace(dataId string, other *Component) *Component {
 	return c
 }
 
+func (c *Component) ReplaceSelf(other *Component) *Component {
+	p := c.wrapped.ParentElement()
+	if p == nil {
+		panic("no parent elem for data node")
+	}
+	p.ReplaceChild(other.wrapped, c.wrapped)
+
+	// clean up ourself
+	c.Release()
+
+	// incorporate everything else
+	c.wrapped = other.wrapped
+	c.resources = other.resources
+	c.appendListeners = other.appendListeners
+
+	return c
+}
+
 func (c *Component) AppendChild(dataId string, other *Component) *Component {
 	elem := c.wrapped.QuerySelector(`[data-id="` + dataId + `"]`)
 	if elem == nil {
@@ -108,6 +126,10 @@ func (c *Component) AppendChild(dataId string, other *Component) *Component {
 	c.Attach(other)
 
 	return c
+}
+
+func (c *Component) FindChild(dataId string) dom.Element {
+	return c.wrapped.QuerySelector(`[data-id="` + dataId + `"]`)
 }
 
 func (c *Component) Add(other *Component) *Component {
