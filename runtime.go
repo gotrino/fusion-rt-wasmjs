@@ -133,6 +133,9 @@ func (r *Runtime) dispatchRoute(route string) {
 
 	for _, matcher := range r.matchers {
 		if matcher.Matches(u) {
+			if err := matcher.Apply(u); err != nil {
+				log.Printf("cannot apply matching match: %v\n", err)
+			}
 			log.Printf("route matches: %T\n", matcher.Unwrap())
 			r.applyActivity(matcher.Unwrap())
 			return

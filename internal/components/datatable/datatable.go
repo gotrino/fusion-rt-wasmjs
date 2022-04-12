@@ -4,7 +4,6 @@ import (
 	"context"
 	"embed"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/tree"
-	"github.com/gotrino/fusion/spec/rest"
 	"github.com/gotrino/fusion/spec/table"
 	"honnef.co/go/js/dom/v2"
 	"html/template"
@@ -92,9 +91,7 @@ func (c *DataTable) Render(ctx context.Context) *tree.Component {
 	c.Rows = nil
 	c.Columns = nil
 
-	repo := c.model.Repository.(interface {
-		New(ctx context.Context) rest.RepositoryImplStencil
-	}).New(ctx)
+	repo := c.model.Repository.New(ctx)
 	entities, err := repo.List()
 	if err != nil {
 		c.ErrMsg = err.Error()

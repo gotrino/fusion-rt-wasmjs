@@ -20,12 +20,13 @@ type Text struct {
 	Lines       int
 	Error       error
 	Type        string
-	def         any
+	def         *any
 	stencil     form.StencilText
 	Value       string
 }
 
-func NewText(textModel form.StencilText, def any) *Text {
+func NewText(textModel form.StencilText, def *any) *Text {
+	modelValue := textModel.FromModel(*def)
 	return &Text{
 		def:         def,
 		stencil:     textModel,
@@ -36,6 +37,7 @@ func NewText(textModel form.StencilText, def any) *Text {
 		Disabled:    textModel.Disabled,
 		Placeholder: textModel.Placeholder,
 		Lines:       textModel.Lines,
+		Value:       modelValue,
 	}
 }
 
@@ -45,7 +47,7 @@ func (c *Text) Render(ctx context.Context) *tree.Component {
 	textElem.Attach(inputElem.AddEventListener("input", true, func(event dom.Event) {
 		value := inputElem.Underlying().Get("value").String()
 		c.Value = value
-		c.Error = c.stencil.ToModel(value, c.def)
+		*c.def, c.Error = c.stencil.ToModel(value, *c.def)
 
 		// this is a bit ugly, because we do not have a delta-algorithm, so we have to fix
 		priorInputElem := textElem.FindChild(c.ID)
