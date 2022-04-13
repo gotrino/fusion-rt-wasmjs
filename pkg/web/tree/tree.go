@@ -97,6 +97,16 @@ func (c *Component) Replace(dataId string, other *Component) *Component {
 	return c
 }
 
+func (c *Component) DeleteSelf() {
+	p := c.wrapped.ParentElement()
+	if p == nil {
+		panic("no parent elem for data node")
+	}
+
+	p.RemoveChild(c.wrapped)
+	c.Release()
+}
+
 func (c *Component) ReplaceSelf(other *Component) *Component {
 	p := c.wrapped.ParentElement()
 	if p == nil {

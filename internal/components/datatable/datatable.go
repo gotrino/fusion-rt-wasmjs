@@ -3,7 +3,12 @@ package datatable
 import (
 	"context"
 	"embed"
+	"github.com/gotrino/fusion-rt-wasmjs/internal/components/dialog"
+	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/i18n"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/tree"
+	"github.com/gotrino/fusion/runtime/rest"
+	"github.com/gotrino/fusion/spec/app"
+	"github.com/gotrino/fusion/spec/svg"
 	"github.com/gotrino/fusion/spec/table"
 	"honnef.co/go/js/dom/v2"
 	"html/template"
@@ -39,6 +44,8 @@ type Row struct {
 //    Values[0] contains the link and Values[1] contains the link-name
 //  * type == "badges"
 //    Values contains each badge in the combo: <color>:<text> where color is one of red|blue|green
+//  * type == "data-id-svg"
+//    Values[0] contains the data-id and Values[1] contains the SVG
 type Cell struct {
 	Values []string
 	Type   string
@@ -75,6 +82,11 @@ type Badge struct {
 	Text  string
 }
 
+type dataIdEntity struct {
+	dataId string
+	entity any
+}
+
 type DataTable struct {
 	model   table.DataTableStencil
 	ErrMsg  string
@@ -101,6 +113,13 @@ func (c *DataTable) Render(ctx context.Context) *tree.Component {
 		c.Columns = append(c.Columns, Column{Title: column.Name})
 	}
 
+	// add empty column for actions
+	if c.model.Deletable {
+		c.Columns = append(c.Columns, Column{})
+	}
+
+	var deletables []dataIdEntity
+
 	for _, entity := range entities {
 		id := tree.NextID()
 		row := Row{
@@ -108,11 +127,24 @@ func (c *DataTable) Render(ctx context.Context) *tree.Component {
 			Hover: c.model.OnClick != nil,
 		}
 
-		for i := 0; i < len(c.Columns); i++ {
+		for i := 0; i < len(c.model.Columns); i++ {
 			cell := c.model.OnRender(ctx, entity, i)
 			row.Cells = append(row.Cells, Cell{
 				Values: cell.Values,
 				Type:   cell.RenderHint,
+			})
+		}
+
+		if c.model.Deletable {
+			treeId := tree.NextID()
+			row.Cells = append(row.Cells, Cell{
+				Values: []string{treeId, string(svg.OutlineTrash)},
+				Type:   "data-id-svg",
+			})
+
+			deletables = append(deletables, dataIdEntity{
+				dataId: treeId,
+				entity: entity,
 			})
 		}
 
@@ -123,11 +155,53 @@ func (c *DataTable) Render(ctx context.Context) *tree.Component {
 
 	if c.model.OnClick != nil {
 		for i, row := range c.Rows {
-			dom.GetWindow().Document().GetElementByID(row.ID)
-			elem.Attach(elem.Unwrap().AddEventListener("click", true, func(event dom.Event) {
-				entity := entities[i]
+			rowNum := i
+			rowElem := elem.FindChild(row.ID)
+			elem.Attach(rowElem.AddEventListener("click", false, func(event dom.Event) {
+				entity := entities[rowNum]
 				log.Printf("clicked %v -> %v\n", i, entity)
 				c.model.OnClick(ctx, entity)
+			}))
+		}
+	}
+
+	if c.model.Deletable {
+		for _, deletable := range deletables {
+			entity := deletable.entity
+			trashBtn := elem.FindChild(deletable.dataId)
+			trashBtn.Class().Add("hover:bg-blue-100")
+			elem.Attach(trashBtn.AddEventListener("click", false, func(event dom.Event) {
+				event.StopPropagation()
+
+				dlgElem := dialog.NewActionDialog(
+					ctx,
+					svg.OutlineExclamation,
+					i18n.Text(ctx, "Bestätigung löschen"),
+					i18n.Text(ctx, "Sind Sie sicher, dass Sie den Eintrag löschen möchten?"),
+					dialog.Button{
+						Caption: i18n.Text(ctx, "cancel"),
+					},
+					dialog.Button{
+						Caption:      "delete",
+						CallToAction: true,
+						Action: func() {
+							rt := app.FromContext[app.RT](ctx)
+							log.Printf("%+v delete", entity)
+							rt.Delegate.Spawn(func() {
+								id, err := rest.GetID(entity)
+								if err != nil {
+									panic(err)
+								}
+								if err := repo.Delete(id); err != nil {
+									panic(err)
+								}
+
+								rt.Delegate.Refresh()
+							})
+						},
+					},
+				).Render(ctx)
+				elem.Add(dlgElem)
 			}))
 		}
 	}

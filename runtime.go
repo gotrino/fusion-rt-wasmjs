@@ -3,15 +3,19 @@ package wasmjs
 import (
 	"context"
 	"fmt"
+	"github.com/gotrino/fusion-rt-wasmjs/internal/components/dialog"
 	"github.com/gotrino/fusion-rt-wasmjs/internal/components/page"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/router"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/tree"
 	"github.com/gotrino/fusion/runtime"
 	"github.com/gotrino/fusion/spec/app"
+	"github.com/gotrino/fusion/spec/svg"
 	"honnef.co/go/js/dom/v2"
+	"html/template"
 	"log"
 	"net/url"
 	"reflect"
+	"runtime/debug"
 	"strings"
 )
 
@@ -40,7 +44,7 @@ func (r *Runtime) Navigate(ac app.ActivityComposer) {
 
 func (r *Runtime) Start(spec app.ApplicationComposer) error {
 	r.ctx = context.Background()
-	r.ctx = app.WithContext[app.Navigator](r.ctx, app.Navigator{Delegate: r})
+	r.ctx = app.WithContext[app.RT](r.ctx, app.RT{Delegate: r})
 
 	r.app = spec.Compose(r.ctx)
 	r.ctx = app.WithContext[app.Application](r.ctx, r.app)
@@ -58,6 +62,38 @@ func (r *Runtime) Start(spec app.ApplicationComposer) error {
 
 	r.initRouting()
 	select {}
+}
+
+func (r *Runtime) Spawn(f func()) {
+	go func() {
+		defer func() {
+			if e := recover(); e != nil {
+				log.Println("Recovered in f", r)
+				stacktrace := string(debug.Stack())
+				log.Println(string(debug.Stack()))
+				dlg := dialog.NewActionDialog(r.ctx,
+					svg.OutlineExclamation,
+					"oops, something went wrong",
+					"",
+					dialog.Button{
+						Caption: "not ok",
+					},
+				)
+				dlg.RawMessage = `<div class="overscroll-auto"><pre>` + template.HTML(strings.ReplaceAll(stacktrace, "\n", "<br>")) + "</pre></div>"
+				dlgElem := dlg.Render(r.ctx)
+				if r.component != nil {
+					r.component.Add(dlgElem)
+				}
+			}
+		}()
+
+		f()
+	}()
+}
+
+func (r *Runtime) Refresh() {
+	hash := dom.GetWindow().Location().Hash()
+	r.dispatchRoute(hash)
 }
 
 func (r *Runtime) initRouting() {
