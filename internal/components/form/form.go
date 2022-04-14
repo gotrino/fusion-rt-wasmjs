@@ -3,6 +3,7 @@ package form
 import (
 	"context"
 	"embed"
+	"github.com/gotrino/fusion-rt-wasmjs/internal/components/ace"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/i18n"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/tree"
 	"github.com/gotrino/fusion/spec/app"
@@ -30,18 +31,18 @@ type Form struct {
 	BtnCancelID   string
 	Error         error
 	Entity        any
-	repo          app.ResourceImplStencil
+	repo          app.RepositoryImplStencil
 	lastRendered  *tree.Component
 }
 
 func NewForm(ctx context.Context, model form.Form) *Form {
-	return &Form{ctx: ctx, Model: model, repo: model.Resource.New(ctx)}
+	return &Form{ctx: ctx, Model: model, repo: model.Repository.New(ctx)}
 }
 
 func (c *Form) Render(ctx context.Context) *tree.Component {
-	c.Entity = c.Model.Resource.GetDefault()
+	c.Entity = c.Model.Repository.GetDefault()
 
-	v, err := c.repo.Load()
+	v, err := c.repo.Load(c.Model.ResourceID)
 	if err == nil {
 		c.Entity = v
 	} else {
@@ -74,6 +75,9 @@ func (c *Form) Render(ctx context.Context) *tree.Component {
 			text := NewText(textModel, &c.Entity)
 
 			formElem.AppendChild("content", text.Render(ctx))
+		case form.CodeEditor:
+			editor := ace.NewACE(ctx, t)
+			formElem.AppendChild("content", editor.Render(ctx))
 		}
 	}
 
@@ -104,7 +108,7 @@ func (c *Form) Render(ctx context.Context) *tree.Component {
 }
 
 func (c *Form) onDelete() {
-	c.Error = c.repo.Delete()
+	c.Error = c.repo.Delete(c.Model.ResourceID)
 	c.invalidate()
 }
 

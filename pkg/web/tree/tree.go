@@ -35,6 +35,7 @@ type Component struct {
 	resources []Releasable
 
 	appendListeners []func()
+	wasAppended     bool
 }
 
 func Wrap(elem dom.Element) *Component {
@@ -152,6 +153,11 @@ func (c *Component) Add(other *Component) *Component {
 // Attach just adds the releasable to the receivers lifetime.
 func (c *Component) Attach(r Releasable) {
 	c.resources = append(c.resources, r)
+	if c.wasAppended {
+		if cmp, ok := r.(*Component); ok {
+			cmp.Appended()
+		}
+	}
 }
 
 func (c *Component) Unwrap() dom.Element {
@@ -172,6 +178,8 @@ func (c *Component) Appended() {
 			other.Appended()
 		}
 	}
+
+	c.wasAppended = true
 }
 
 func (c *Component) Release() {
