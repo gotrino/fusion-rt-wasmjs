@@ -4,29 +4,55 @@ import (
 	"context"
 	"embed"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/tree"
-	"github.com/gotrino/fusion/spec/form"
 	"honnef.co/go/js/dom/v2"
 	"html/template"
 	"log"
+	"strings"
 	"syscall/js"
 )
 
 //go:embed *.gohtml
 var tpl embed.FS
 
-type ACE struct {
-	ID      string
-	Model   form.CodeEditor
-	RawText template.HTML
+type CodeEditor interface {
+	GetToModel() func(src string, dst any) (any, error)
+	GetFromModel() func(src any) string
+	GetLang() string
+	IsReadOnly() bool
 }
 
-func NewACE(ctx context.Context, model form.CodeEditor) *ACE {
-	return &ACE{Model: model}
+type ACE struct {
+	ID      string
+	Model   CodeEditor
+	RawText template.HTML
+	Error   error
+	entity  *any
+}
+
+func NewACE(ctx context.Context, model CodeEditor, entity *any) *ACE {
+	return &ACE{Model: model, entity: entity}
+}
+
+func langToMode(lang string) string {
+	switch strings.ToLower(lang) {
+	case "golang":
+		fallthrough
+	case "go":
+		return "ace/mode/golang"
+	case "json":
+		return "ace/mode/golang"
+	default:
+		return "ace/mode/text"
+	}
 }
 
 func (c *ACE) Render(ctx context.Context) *tree.Component {
 	c.ID = tree.NextID()
-	c.RawText = "// check that\nfunc main(){\nprintln(`hello world`)\n}\n"
+	if c.Model.GetFromModel() != nil {
+		c.RawText = template.HTML(c.Model.GetFromModel()(*c.entity))
+	} else {
+		log.Println("ace: FromModel is not implemented")
+	}
 	aceElem := tree.Template(ctx, tpl, c)
 
 	aceElem.OnAppended(func() {
@@ -35,9 +61,22 @@ func (c *ACE) Render(ctx context.Context) *tree.Component {
 		aceElem.Attach(script.AddEventListener("load", false, func(event dom.Event) {
 			log.Println("ace loaded")
 			editor := js.Global().Get("ace").Call("edit", c.ID)
+			editor.Call("setReadOnly", c.Model.IsReadOnly())
 			editor.Call("setTheme", "ace/theme/monokai")
-			editor.Get("session").Call("setMode", "ace/mode/golang")
-			editor.Call("setReadOnly", c.Model.ReadOnly)
+			session := editor.Get("session")
+			session.Call("setMode", langToMode(c.Model.GetLang()))
+			onChangeFun := js.FuncOf(func(this js.Value, args []js.Value) any {
+				text := editor.Call("getValue").String()
+				if c.Model.GetToModel() != nil {
+					*c.entity, c.Error = c.Model.GetToModel()(text, *c.entity)
+				} else {
+					log.Println("ace: ToModel is not implemented")
+				}
+				return nil
+			})
+			aceElem.Attach(onChangeFun)
+			session.Call("on", "change", onChangeFun)
+
 		}))
 		script.SetAttribute("type", "text/javascript")
 		script.SetAttribute("charset", "utf-8")

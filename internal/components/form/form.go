@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"github.com/gotrino/fusion-rt-wasmjs/internal/components/ace"
+	"github.com/gotrino/fusion-rt-wasmjs/internal/components/label"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/i18n"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/tree"
 	"github.com/gotrino/fusion/spec/app"
@@ -21,18 +22,19 @@ type toStencilText interface {
 }
 
 type Form struct {
-	ctx           context.Context
-	Model         form.Form
-	BtnSaveText   string
-	BtnSaveID     string
-	BtnDeleteText string
-	BtnDeleteID   string
-	BtnCancelText string
-	BtnCancelID   string
-	Error         error
-	Entity        any
-	repo          app.RepositoryImplStencil
-	lastRendered  *tree.Component
+	ctx              context.Context
+	Model            form.Form
+	BtnSaveText      string
+	BtnSaveID        string
+	BtnDeleteText    string
+	BtnDeleteID      string
+	BtnCancelText    string
+	BtnCancelID      string
+	Error            error
+	Entity           any
+	repo             app.RepositoryImplStencil
+	lastRendered     *tree.Component
+	doNotReloadModel bool
 }
 
 func NewForm(ctx context.Context, model form.Form) *Form {
@@ -40,14 +42,16 @@ func NewForm(ctx context.Context, model form.Form) *Form {
 }
 
 func (c *Form) Render(ctx context.Context) *tree.Component {
-	c.Entity = c.Model.Repository.GetDefault()
+	if !c.doNotReloadModel {
+		c.Entity = c.Model.Repository.GetDefault()
 
-	v, err := c.repo.Load(c.Model.ResourceID)
-	if err == nil {
-		c.Entity = v
-	} else {
-		if !app.NotFound(err) {
-			c.Error = err
+		v, err := c.repo.Load(c.Model.ResourceID)
+		if err == nil {
+			c.Entity = v
+		} else {
+			if !app.NotFound(err) {
+				c.Error = err
+			}
 		}
 	}
 
@@ -75,16 +79,22 @@ func (c *Form) Render(ctx context.Context) *tree.Component {
 			text := NewText(textModel, &c.Entity)
 
 			formElem.AppendChild("content", text.Render(ctx))
-		case form.CodeEditor:
-			editor := ace.NewACE(ctx, t)
+		case ace.CodeEditor:
+			editor := ace.NewACE(ctx, t, &c.Entity)
 			formElem.AppendChild("content", editor.Render(ctx))
+		case label.Label:
+			view := label.NewView(ctx, t, &c.Entity)
+			formElem.AppendChild("content", view.Render(ctx))
+		default:
+			log.Printf("form does not support type %T\n", t)
 		}
+
 	}
 
 	if c.BtnSaveID != "" {
 		btnElem := formElem.FindChild(c.BtnSaveID)
 		formElem.Attach(btnElem.AddEventListener("click", true, func(event dom.Event) {
-			log.Printf("%+v", c.Entity)
+			log.Printf("save %+v", c.Entity)
 			go c.onSave()
 		}))
 	}
@@ -115,11 +125,14 @@ func (c *Form) onDelete() {
 func (c *Form) onSave() {
 	c.Error = c.repo.Save(c.Entity)
 	if c.Error != nil {
+		c.doNotReloadModel = true
 		c.invalidate()
 		return
 	}
 
-	js.Global().Get("history").Call("back")
+	//TODO should we reload?
+	//TODO show toast if not OnSaved defined for custom navigation
+	//js.Global().Get("history").Call("back")
 }
 
 func (c *Form) onCancel() {

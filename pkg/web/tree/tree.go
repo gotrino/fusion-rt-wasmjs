@@ -123,6 +123,10 @@ func (c *Component) ReplaceSelf(other *Component) *Component {
 	c.resources = other.resources
 	c.appendListeners = other.appendListeners
 
+	if c.wasAppended {
+		other.Appended()
+	}
+
 	return c
 }
 
