@@ -5,10 +5,12 @@ import (
 	"embed"
 	"github.com/gotrino/fusion-rt-wasmjs/internal/components/ace"
 	"github.com/gotrino/fusion-rt-wasmjs/internal/components/label"
+	"github.com/gotrino/fusion-rt-wasmjs/internal/components/snackbar"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/i18n"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/tree"
 	"github.com/gotrino/fusion/spec/app"
 	"github.com/gotrino/fusion/spec/form"
+	"github.com/gotrino/fusion/spec/svg"
 	"honnef.co/go/js/dom/v2"
 	"log"
 	"syscall/js"
@@ -127,12 +129,14 @@ func (c *Form) onSave() {
 	if c.Error != nil {
 		c.doNotReloadModel = true
 		c.invalidate()
+		snackbar.ShowToast(c.ctx, svg.OutlineExclamation, i18n.Text(c.ctx, c.Model.Title+" konnte nicht gespeichert werden"))
 		return
 	}
 
 	//TODO should we reload?
 	//TODO show toast if not OnSaved defined for custom navigation
 	//js.Global().Get("history").Call("back")
+	snackbar.ShowToast(c.ctx, svg.OutlineSave, i18n.Text(c.ctx, c.Model.Title+" erfolgreich gespeichert"))
 }
 
 func (c *Form) onCancel() {

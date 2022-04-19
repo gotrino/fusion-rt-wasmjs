@@ -3,6 +3,7 @@ package datatable
 import (
 	"context"
 	"embed"
+	"fmt"
 	"github.com/gotrino/fusion-rt-wasmjs/internal/components/dialog"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/i18n"
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/tree"
@@ -106,7 +107,7 @@ func (c *DataTable) Render(ctx context.Context) *tree.Component {
 	repo := c.model.Repository.New(ctx)
 	entities, err := repo.List()
 	if err != nil {
-		c.ErrMsg = err.Error()
+		c.ErrMsg = fmt.Sprintf("%v", fmt.Errorf("cannot list repos: %w", err))
 	}
 
 	for _, column := range c.model.Columns {

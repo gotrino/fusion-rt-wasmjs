@@ -6,22 +6,21 @@
             <!-- Sidebar links -->
             <nav aria-label="Main" class="flex-1 px-2 py-4 space-y-2 overflow-y-hidden hover:overflow-y-auto">
 
-               {{range .Navigation}}
-                <a
-                        href="{{- .Link -}}"
-                        class="flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary {{- if .Active -}} bg-primary-300 dark:bg-primary {{end}}"
-                        role="button"
-                        aria-haspopup="true"
+                {{range .Navigation}}
+                    <a
+                            href="{{- .Link -}}"
+                            class="flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary {{- if .Active -}} bg-primary-300 dark:bg-primary {{end}}"
+                            role="button"
+                            aria-haspopup="true"
 
-                >
+                    >
                   <span aria-hidden="true">
                     {{.UnsafeSVG}}
                   </span>
-                    <span class="ml-2 text-sm">{{.Caption}}</span>
-                    <span class="ml-auto" aria-hidden="true"></span>
-                </a>
+                        <span class="ml-2 text-sm">{{.Caption}}</span>
+                        <span class="ml-auto" aria-hidden="true"></span>
+                    </a>
                 {{end}}
-
 
 
             </nav>
@@ -67,7 +66,7 @@
                         href="#"
                         class="inline-block text-2xl font-bold tracking-wider uppercase text-primary-dark dark:text-light"
                 >
-                    <span >{{.AppBarTitle}}</span>
+                    <span>{{.AppBarTitle}}</span>
                     &nbsp;|&nbsp;<span>{{.AppBarSubTitle}}</span>
                 </a>
 
@@ -113,13 +112,10 @@
         <main data-id="content">
 
 
-
             <!-- Content -->
             <div class="mt-2">
                 <!-- State cards -->
                 <div class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4">
-
-
 
 
                     <!-- Users card -->
@@ -134,7 +130,12 @@
         </main>
     </div>
 
+    <div class="pointer-events-none fixed z-10 inset-0 overflow-y-auto" aria-labelledby="toast-layer" role="dialog" aria-modal="true">
+        <div id="snackbar-panel" class="flex gap-4 flex-col items-start justify-end min-h-screen pt-4 px-4 pb-4 text-center block p-0">
 
+
+        </div>
+    </div>
 </div>
 
 
