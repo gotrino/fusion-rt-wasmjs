@@ -47,12 +47,14 @@ func (c *Form) Render(ctx context.Context) *tree.Component {
 	if !c.doNotReloadModel {
 		c.Entity = c.Model.Repository.GetDefault()
 
-		v, err := c.repo.Load(c.Model.ResourceID)
-		if err == nil {
-			c.Entity = v
-		} else {
-			if !app.NotFound(err) {
-				c.Error = err
+		if !c.Model.New {
+			v, err := c.repo.Load(c.Model.ResourceID)
+			if err == nil {
+				c.Entity = v
+			} else {
+				if !app.NotFound(err) {
+					c.Error = err
+				}
 			}
 		}
 	}

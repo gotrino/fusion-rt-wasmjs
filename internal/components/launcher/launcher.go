@@ -9,6 +9,7 @@ import (
 	"github.com/gotrino/fusion-rt-wasmjs/pkg/web/tree"
 	"github.com/gotrino/fusion/spec/app"
 	"github.com/gotrino/fusion/spec/svg"
+	"html/template"
 )
 
 //go:embed *.gohtml
@@ -20,6 +21,10 @@ type Model struct {
 	Icon     svg.SVG
 	Link     string
 	More     string
+}
+
+func (m Model) SVG() template.HTML {
+	return template.HTML(m.Icon)
 }
 
 type Launcher struct {

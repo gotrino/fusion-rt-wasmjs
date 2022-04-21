@@ -94,6 +94,7 @@ type DataTable struct {
 	Columns []Column
 	Rows    []Row
 	ctx     context.Context
+	OnAddID string
 }
 
 func NewDataTable(ctx context.Context, model table.DataTableStencil) *DataTable {
@@ -103,6 +104,9 @@ func NewDataTable(ctx context.Context, model table.DataTableStencil) *DataTable 
 func (c *DataTable) Render(ctx context.Context) *tree.Component {
 	c.Rows = nil
 	c.Columns = nil
+	if c.model.OnAdd != nil {
+		c.OnAddID = tree.NextID()
+	}
 
 	repo := c.model.Repository.New(ctx)
 	entities, err := repo.List()
@@ -153,6 +157,13 @@ func (c *DataTable) Render(ctx context.Context) *tree.Component {
 	}
 
 	elem := tree.Template(ctx, tpl, c)
+
+	if c.model.OnAdd != nil {
+		addBtn := elem.FindChild(c.OnAddID)
+		elem.Attach(addBtn.AddEventListener("click", false, func(event dom.Event) {
+			c.model.OnAdd(c.ctx)
+		}))
+	}
 
 	if c.model.OnClick != nil {
 		for i, row := range c.Rows {
